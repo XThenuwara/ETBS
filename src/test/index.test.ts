@@ -5,8 +5,8 @@ import http from "http";
 describe("Health Check Endpoint", () => {
     let serverInstance: http.Server;
 
-    beforeAll(() => {
-        serverInstance = index.server;
+    beforeAll(async() => {
+        serverInstance = (await index).server;
     });
 
     afterAll(async () => {

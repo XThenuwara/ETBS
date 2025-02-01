@@ -5,8 +5,8 @@
 - [done] ETBS-01-002 - Configure TypeScript, ESLint, and Prettier for code consistency and Jest for testing
 
 ### ETBS-02-000 - Database & Migrations  
-- ETBS-02-001 - Design and integrate the database and RDBMS schema for user, event, bookings, and waiting list,
-- ETBS-02-002 - Implement migrations mechanism for database schema  
+- [done] ETBS-02-001 - Design and integrate the database and RDBMS schema for user, event, bookings, and waiting list,
+- [done] ETBS-02-002 - Implement migrations mechanism for database schema  
 
 ### ETBS-03-000 - Event Initialization  
 - ETBS-03-001 - Write unit tests for event initialization (TDD)  

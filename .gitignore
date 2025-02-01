@@ -4,6 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# sqlite database
+database/database.sqlite
+
 # TypeScript build output
 dist/
 build/
