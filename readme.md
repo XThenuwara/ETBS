@@ -9,7 +9,7 @@
 - [done] ETBS-02-002 - Implement migrations mechanism for database schema  
 
 ### ETBS-03-000 - Event Initialization  
-- ETBS-03-001 - Write unit tests for event initialization (TDD)  
+- [done] ETBS-03-001 - Write unit tests for event initialization (TDD)  ]
 - ETBS-03-002 - Implement event initialization with available tickets  
 
 ### ETBS-04-000 - Ticket Booking  
