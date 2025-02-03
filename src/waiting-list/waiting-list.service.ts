@@ -18,4 +18,11 @@ export class WaitingListService {
         await this.waitingListRepository.save(waiting);
         return waiting;
     }
+
+    async getFirstWaitingListEntry(eventId: number) {
+        return this.waitingListRepository.findOne({
+            where: { eventId },
+            order: { createdAt: "DESC" }
+        });
+    }
 }

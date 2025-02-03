@@ -1,9 +1,10 @@
 import { Router, Request, Response } from "express";
-import { EventService } from "./event.service";
-import { sendResponse } from "../lib/common";
-import { CreateEventDto } from "./dto/create-event.dto";
-import { BookEventRequestDto } from "./dto/book-event.dto";
-import { ResponseType } from "../lib/types/response.type";
+import { EventService } from "@/event/event.service";
+import { sendResponse } from "@/lib/common";
+import { CreateEventDto } from "@/event/dto/create-event.dto";
+import { BookEventRequestDto } from "@/event/dto/book-event.dto";
+import { ResponseType } from "@/lib/types/response.type";
+import { CancelBookingRequestDto } from "@/event/dto/cancel-event.dto";
 
 const eventService = new EventService();
 const eventRouter = Router();
@@ -32,7 +33,20 @@ const bookEvent = async (req: Request, res: Response<ResponseType>) => {
     }
 };
 
+const cancelBooking = async (req: Request, res: Response<ResponseType>) => {
+    try {
+        console.log("Canceling booking", req.body);
+        const cancelBookingRequest: CancelBookingRequestDto = req.body;
+        await eventService.cancelBooking(cancelBookingRequest);
+        sendResponse(res, 200, "OK", null);
+    } catch (error) {
+        console.error("Error in cancelBooking:", error);
+        sendResponse(res, 500, "Internal Server Error", null, error);
+    }
+};
+
 eventRouter.post("/events", initializeEvent);
-eventRouter.post("/events/book", bookEvent);
+eventRouter.post("/events/booking", bookEvent);
+eventRouter.delete("/events/booking", cancelBooking);
 
 export default eventRouter;

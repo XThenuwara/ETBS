@@ -5,6 +5,8 @@ import { EventService } from "@/event/event.service";
 import { BookEventRequestDto } from "@/event/dto/book-event.dto";
 import { Repository, Connection, QueryRunner, EntityManager } from "typeorm";
 import { RedisSource } from "@/config/redis.config";
+import { CancelBookingRequestDto } from "@/event/dto/cancel-event.dto";
+import { Booking } from "@/event/entity/booking.entity";
 
 describe("EventService", () => {
     let service: EventService;
@@ -255,14 +257,12 @@ describe("EventService", () => {
     // Booking Cancellation
     describe("cancelBooking", () => {
         it("should successfully cancel a booking and increase available tickets", async () => {
-            const cancelEventDto: BookEventRequestDto = {
-                eventId: 1,
-                email: "test@gmail.com",
-                ticketCount: 10,
+            const cancelEventDto: CancelBookingRequestDto = {
+                bookingId: 1,
             };
-
+    
             const mockEvent: Event = {
-                id: cancelEventDto.eventId,
+                id: 1,
                 name: "Test Event",
                 description: "Test Description",
                 startDate: new Date(),
@@ -274,30 +274,42 @@ describe("EventService", () => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             } as Event;
-
+    
+            const mockBooking: Booking = {
+                id: 1,
+                ticketCount: 10,
+                event: mockEvent,
+            } as Booking;
+    
             mockRedisSource.set.mockResolvedValue("OK");
-            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockEvent);
+            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockBooking);
+            (mockQueryRunner.manager.remove as jest.Mock).mockResolvedValue(undefined); 
             (mockQueryRunner.manager.save as jest.Mock).mockResolvedValue({
                 ...mockEvent,
-                availableTickets: mockEvent.availableTickets + cancelEventDto.ticketCount,
+                availableTickets: mockEvent.availableTickets + 10,
             });
-
-            expect(service.cancelBooking(cancelEventDto)).resolves.not.toThrow();
-
+    
+            await service.cancelBooking(cancelEventDto);
+    
             expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
+            expect(mockQueryRunner.manager.findOne).toHaveBeenCalled();
+            expect(mockQueryRunner.manager.remove).toHaveBeenCalledWith(mockBooking);
+            expect(mockQueryRunner.manager.save).toHaveBeenCalledWith({
+                ...mockEvent,
+                availableTickets: mockEvent.availableTickets,
+            });
             expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
             expect(mockQueryRunner.release).toHaveBeenCalled();
+
         });
 
         it("should successfully cancel a booking and if there's waiting, book the waiting users", async () => {
-            const cancelEventDto: BookEventRequestDto = {
-                eventId: 1,
-                email: "test@gmail.com",
-                ticketCount: 10,
+            const cancelEventDto: CancelBookingRequestDto = {
+                bookingId: 1,
             };
 
             const mockEvent: Event = {
-                id: cancelEventDto.eventId,
+                id: 1,
                 name: "Test Event",
                 description: "Test Description",
                 startDate: new Date(),
@@ -310,13 +322,20 @@ describe("EventService", () => {
                 updatedAt: new Date(),
             } as Event;
 
+            const mockBooking: Booking = {
+                id: 1,
+                ticketCount: 10,
+                event: mockEvent,
+            } as Booking;
+
             mockRedisSource.set.mockResolvedValue("OK");
-            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockEvent);
+            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockBooking);
             (mockQueryRunner.manager.save as jest.Mock).mockResolvedValue({
                 ...mockEvent,
-                availableTickets: mockEvent.availableTickets + cancelEventDto.ticketCount,
+                availableTickets: mockEvent.availableTickets + 10,
             });
 
+            await service.cancelBooking(cancelEventDto);
             expect(service.cancelBooking(cancelEventDto)).resolves.not.toThrow();
 
             expect(mockQueryRunner.startTransaction).toHaveBeenCalled();

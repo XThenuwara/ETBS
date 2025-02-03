@@ -20,7 +20,7 @@
 
 ### ETBS-05-000 - Ticket Cancellation & Reassignment  
 - [done] ETBS-05-001 - Write unit tests for ticket cancellation and reassignment (TDD)  
-- ETBS-05-002 - Implement ticket cancellation and automatic reassignment  
+- [done] ETBS-05-002 - Implement ticket cancellation and automatic reassignment  
 
 ### ETBS-06-000 - Viewing Information  
 - ETBS-06-001 - Write unit tests for viewing available tickets and waiting list (TDD)  
