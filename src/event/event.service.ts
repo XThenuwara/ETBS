@@ -77,4 +77,8 @@ export class EventService {
             await queryRunner.release();
         }
     }
+
+    async cancelBooking(cancelEventDto: BookEventRequestDto) {
+
+    }
 }

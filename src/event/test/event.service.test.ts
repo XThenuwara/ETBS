@@ -251,4 +251,77 @@ describe("EventService", () => {
             );
         });
     });
+
+    // Booking Cancellation
+    describe("cancelBooking", () => {
+        it("should successfully cancel a booking and increase available tickets", async () => {
+            const cancelEventDto: BookEventRequestDto = {
+                eventId: 1,
+                email: "test@gmail.com",
+                ticketCount: 10,
+            };
+
+            const mockEvent: Event = {
+                id: cancelEventDto.eventId,
+                name: "Test Event",
+                description: "Test Description",
+                startDate: new Date(),
+                endDate: new Date(),
+                location: "Test Location",
+                totalTickets: 100,
+                price: 100,
+                availableTickets: 80,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } as Event;
+
+            mockRedisSource.set.mockResolvedValue("OK");
+            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockEvent);
+            (mockQueryRunner.manager.save as jest.Mock).mockResolvedValue({
+                ...mockEvent,
+                availableTickets: mockEvent.availableTickets + cancelEventDto.ticketCount,
+            });
+
+            expect(service.cancelBooking(cancelEventDto)).resolves.not.toThrow();
+
+            expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
+            expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
+            expect(mockQueryRunner.release).toHaveBeenCalled();
+        });
+
+        it("should successfully cancel a booking and if there's waiting, book the waiting users", async () => {
+            const cancelEventDto: BookEventRequestDto = {
+                eventId: 1,
+                email: "test@gmail.com",
+                ticketCount: 10,
+            };
+
+            const mockEvent: Event = {
+                id: cancelEventDto.eventId,
+                name: "Test Event",
+                description: "Test Description",
+                startDate: new Date(),
+                endDate: new Date(),
+                location: "Test Location",
+                totalTickets: 100,
+                price: 100,
+                availableTickets: 80,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } as Event;
+
+            mockRedisSource.set.mockResolvedValue("OK");
+            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockEvent);
+            (mockQueryRunner.manager.save as jest.Mock).mockResolvedValue({
+                ...mockEvent,
+                availableTickets: mockEvent.availableTickets + cancelEventDto.ticketCount,
+            });
+
+            expect(service.cancelBooking(cancelEventDto)).resolves.not.toThrow();
+
+            expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
+            expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
+            expect(mockQueryRunner.release).toHaveBeenCalled();
+        });
+    });
 });
