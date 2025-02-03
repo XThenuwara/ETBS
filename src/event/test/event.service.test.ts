@@ -1,12 +1,17 @@
-import { Repository } from "typeorm";
 import { Event } from "@/event/entity/event.entity";
 import { SqlLiteDataSource } from "@/config/database.config";
 import { CreateEventDto } from "@/event/dto/create-event.dto";
 import { EventService } from "@/event/event.service";
 import { BookEventRequestDto } from "@/event/dto/book-event.dto";
+import { Repository, Connection, QueryRunner, EntityManager } from "typeorm";
+import { RedisSource } from "@/config/redis.config";
 
 describe("EventService", () => {
     let service: EventService;
+    let mockConnection: jest.Mocked<Connection>;
+    let mockQueryRunner: jest.Mocked<QueryRunner>;
+    let mockEntityManager: jest.Mocked<EntityManager>;
+    let mockRedisSource: jest.Mocked<typeof RedisSource>;
     let mockEventRepository: jest.Mocked<Repository<Event>>;
 
     const createEventDto: CreateEventDto = {
@@ -23,53 +28,140 @@ describe("EventService", () => {
     beforeEach(() => {
         mockEventRepository = {
             findOne: jest.fn(),
-            create: jest.fn(),
             save: jest.fn(),
+            create: jest.fn(),
+            manager: {
+                connection: {
+                    createQueryRunner: jest.fn(() => mockQueryRunner),
+                },
+                findOne: jest.fn(),
+                save: jest.fn(),
+            },
         } as unknown as jest.Mocked<Repository<Event>>;
+
+        mockEntityManager = {
+            "@instanceof": Symbol(),
+            connection: SqlLiteDataSource,
+            queryRunner: undefined,
+            transaction: jest.fn(),
+            query: jest.fn(),
+            createQueryBuilder: jest.fn(),
+            hasId: jest.fn(),
+            getId: jest.fn(),
+            create: jest.fn(),
+            merge: jest.fn(),
+            preload: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+            insert: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+            softDelete: jest.fn(),
+            recover: jest.fn(),
+            count: jest.fn(),
+            find: jest.fn(),
+            findAndCount: jest.fn(),
+            findOne: jest.fn(),
+            findOneOrFail: jest.fn(),
+            clear: jest.fn(),
+            increment: jest.fn(),
+            decrement: jest.fn(),
+            extend: jest.fn(),
+            release: jest.fn(),
+        } as unknown as jest.Mocked<EntityManager>;
+
+        mockConnection = {
+            createQueryRunner: jest.fn(),
+            "@instanceof": Symbol(),
+            name: "default",
+            options: {},
+            isInitialized: true,
+            driver: {} as any,
+            manager: mockEntityManager,
+            isConnected: true,
+            subscribers: [],
+            migrations: [],
+            entities: [],
+        } as unknown as jest.Mocked<Connection>;
+
+        mockQueryRunner = {
+            connection: SqlLiteDataSource,
+            broadcaster: {
+                broadcast: jest.fn(),
+            },
+            isReleased: false,
+            isTransactionActive: false,
+            startTransaction: jest.fn(),
+            commitTransaction: jest.fn(),
+            rollbackTransaction: jest.fn(),
+            release: jest.fn(),
+            manager: mockEntityManager,
+            connect: jest.fn(),
+            disconnect: jest.fn(),
+            query: jest.fn(),
+            hasLock: jest.fn(),
+            getLock: jest.fn(),
+            releaseLock: jest.fn(),
+            stream: jest.fn(),
+            initialize: jest.fn(),
+        } as unknown as jest.Mocked<QueryRunner>;
+
+        mockConnection.createQueryRunner.mockReturnValue(mockQueryRunner);
+
+        mockRedisSource = {
+            set: jest.fn(),
+            get: jest.fn(),
+        } as unknown as jest.Mocked<typeof RedisSource>;
 
         jest.spyOn(SqlLiteDataSource, "getRepository").mockReturnValue(mockEventRepository);
         service = new EventService();
     });
 
+    afterEach(async () => {
+        jest.clearAllMocks();
+    });
+
     // Event Initialization
-    it("should initialize and save the event successfully", async () => {
-        const mockEvent = { id: 1, ...createEventDto } as Event;
-        mockEventRepository.create.mockReturnValue(mockEvent);
-        mockEventRepository.save.mockResolvedValue(mockEvent);
+    describe("initialize", () => {
+        it("should initialize and save the event successfully", async () => {
+            const mockEvent = { id: 1, ...createEventDto } as Event;
+            mockEventRepository.create.mockReturnValue(mockEvent);
+            mockEventRepository.save.mockResolvedValue(mockEvent);
 
-        const result = await service.initialize(createEventDto);
+            const result = await service.initialize(createEventDto);
 
-        expect(mockEventRepository.create).toHaveBeenCalledWith(createEventDto);
-        expect(mockEventRepository.save).toHaveBeenCalledWith(mockEvent);
-        expect(result).toEqual({ id: 1 });
-    });
-
-    it("should handle errors during initialization", async () => {
-        const errorMessage = "Database error";
-        const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-        mockEventRepository.create.mockReturnValue({} as Event);
-        mockEventRepository.save.mockRejectedValue(new Error(errorMessage));
-
-        await expect(service.initialize(createEventDto)).rejects.toThrow(errorMessage);
-
-        expect(consoleErrorSpy).toHaveBeenCalledWith("Event Initialization error:", new Error(errorMessage));
-
-        consoleErrorSpy.mockRestore();
-    });
-
-    it("should handle errors if create throws", async () => {
-        const errorMessage = "Create Error";
-        const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-        mockEventRepository.create.mockImplementation(() => {
-            throw new Error(errorMessage);
+            expect(mockEventRepository.create).toHaveBeenCalledWith(createEventDto);
+            expect(mockEventRepository.save).toHaveBeenCalledWith(mockEvent);
+            expect(result).toEqual({ id: 1 });
         });
 
-        await expect(service.initialize(createEventDto)).rejects.toThrow(errorMessage);
-        expect(consoleErrorSpy).toHaveBeenCalledWith("Event Initialization error:", new Error(errorMessage));
+        it("should handle errors during initialization", async () => {
+            const errorMessage = "Database error";
+            const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-        consoleErrorSpy.mockRestore();
+            mockEventRepository.create.mockReturnValue({} as Event);
+            mockEventRepository.save.mockRejectedValue(new Error(errorMessage));
+
+            await expect(service.initialize(createEventDto)).rejects.toThrow(errorMessage);
+
+            expect(consoleErrorSpy).toHaveBeenCalledWith("Event Initialization error:", new Error(errorMessage));
+
+            consoleErrorSpy.mockRestore();
+        });
+
+        it("should handle errors if create throws", async () => {
+            const errorMessage = "Create Error";
+            const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+            mockEventRepository.create.mockImplementation(() => {
+                throw new Error(errorMessage);
+            });
+
+            await expect(service.initialize(createEventDto)).rejects.toThrow(errorMessage);
+            expect(consoleErrorSpy).toHaveBeenCalledWith("Event Initialization error:", new Error(errorMessage));
+
+            consoleErrorSpy.mockRestore();
+        });
     });
 
     // Event Booking
@@ -95,8 +187,12 @@ describe("EventService", () => {
                 updatedAt: new Date(),
             } as Event;
 
-            mockEventRepository.findOne.mockResolvedValue(mockEvent);
-            mockEventRepository.save.mockResolvedValue(mockEvent);
+            mockRedisSource.set.mockResolvedValue("OK");
+            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockEvent);
+            (mockQueryRunner.manager.save as jest.Mock).mockResolvedValue({
+                ...mockEvent,
+                availableTickets: mockEvent.availableTickets - bookEventDto.ticketCount,
+            });
 
             await expect(service.bookEvent(bookEventDto)).resolves.not.toThrow();
             const result = await service.bookEvent(bookEventDto);
@@ -135,11 +231,8 @@ describe("EventService", () => {
                 updatedAt: new Date(),
             } as Event;
 
-            mockEventRepository.findOne.mockResolvedValue(mockEvent);
-            mockEventRepository.save.mockResolvedValue({
-                ...mockEvent,
-                waitingList: [],
-            });
+            mockRedisSource.set.mockResolvedValue("OK");
+            (mockQueryRunner.manager.findOne as jest.Mock).mockResolvedValue(mockEvent);
 
             await expect(service.bookEvent(bookEventDto)).resolves.not.toThrow();
 
