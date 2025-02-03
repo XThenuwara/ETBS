@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
-import { Event } from "./event.entity";
+import { Event } from "@/event/entity/event.entity";
 
 @Entity("booking")
 export class Booking {
@@ -12,17 +12,18 @@ export class Booking {
     @Column()
     email!: string;
 
-    @Column()
-    ticket_count!: number;
+    @Column({name: "ticket_count"})
+    ticketCount!: number;
 
-    @Column("decimal")
-    total_price!: number;
+    @Column({name: "total_price", type: "decimal"})
+    totalPrice!: number;
 
-    @CreateDateColumn()
-    created_at!: Date;
+    
+    @CreateDateColumn({ name: 'created_at'})
+    createdAt!: Date;
 
-    @UpdateDateColumn()
-    updated_at!: Date;
+    @UpdateDateColumn({ name: 'updated_at'})
+    updatedAt!: Date;
 
     @ManyToOne(() => Event, event => event.bookings)
     @JoinColumn({ name: "event_id" })

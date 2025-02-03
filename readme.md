@@ -13,8 +13,8 @@
 - [done] ETBS-03-002 - Implement event initialization with available tickets  
 
 ### ETBS-04-000 - Ticket Booking  
-- ETBS-04-001 - Write unit tests for ticket booking logic (TDD)  
-- ETBS-04-002 - Implement ticket booking endpoint  
+- [done] ETBS-04-001 - Write unit tests for ticket booking logic (TDD)  ]
+- [done] ETBS-04-002 - Implement ticket booking endpoint  
 - ETBS-04-003 - Handle concurrent ticket bookings and prevent overselling  
 
 ### ETBS-05-000 - Waiting List Management  

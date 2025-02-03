@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "_moduleAliases": {
-    "@": "./dist/src"
+    "@": "./src"
   },
   "scripts": {
     "test": "npm run build && jest --detectOpenHandles",

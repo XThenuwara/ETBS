@@ -5,7 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { SqlLiteDataSource } from "@/config/database.config";
-import { EventController } from "@/event/event.controller";
+import eventRouter from '@/event/event.controller';
 
 const env = process.env.NODE_ENV || "development";
 const envFile = `.env.${env}`;
@@ -39,7 +39,7 @@ const initializeApp = async () => {
   });
 
   // Routes
-  app.post("/api/events", (req, res) => EventController.initialize(req, res));
+  app.use("/api", eventRouter);
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err.stack);
