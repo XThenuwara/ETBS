@@ -6,6 +6,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import { SqlLiteDataSource } from "@/config/database.config";
 import eventRouter from '@/event/event.controller';
+import { RedisSource } from '@/config/redis.config';
 
 const env = process.env.NODE_ENV || "development";
 const envFile = `.env.${env}`;
@@ -19,6 +20,9 @@ const initializeApp = async () => {
   try {
     await SqlLiteDataSource.initialize();
     console.log("Data Source has been initialized!");
+
+    await RedisSource.ping();
+    console.log("Redis Client has been initialized!");
   } catch (error) {
     console.error("Error during Data Source initialization:", error);
     process.exit(1);

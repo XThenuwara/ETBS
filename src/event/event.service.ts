@@ -4,6 +4,7 @@ import { SqlLiteDataSource } from "@/config/database.config";
 import { CreateEventDto } from "@/event/dto/create-event.dto";
 import { BookEventRequestDto, BookEventResponseDto } from "./dto/book-event.dto";
 import { WaitingListService } from "@/waiting-list/waiting-list.service";
+import { RedisSource } from "@/config/redis.config";
 
 export class EventService {
     private eventRepository: Repository<Event>;
@@ -26,15 +27,29 @@ export class EventService {
     }
 
     async bookEvent(bookEventDto: BookEventRequestDto): Promise<BookEventResponseDto> {
+        const lockKey = `event:${bookEventDto.eventId}:lock`;
+        const queryRunner = this.eventRepository.manager.connection.createQueryRunner();
+        await queryRunner.startTransaction();
         try {
-            const event = await this.eventRepository.findOne({ where: { id: bookEventDto.eventId } });
+            const event = await queryRunner.manager.findOne(Event, {
+                where: { id: bookEventDto.eventId },
+                // lock: { mode: "pessimistic_write" },
+            });
+            // Acquire the Redis lock
+            const lockAcquired = await RedisSource.set(lockKey, 'locked', 'EX', 10, 'NX');
+            if (!lockAcquired) {
+                throw new Error("Event is currently being booked by another user");
+            }
+
             if (!event) {
                 throw new Error("Event not found");
             }
 
             if (event.availableTickets > 0 && event.availableTickets >= bookEventDto.ticketCount) {
                 event.availableTickets -= bookEventDto.ticketCount;
-                await this.eventRepository.save(event);
+                await queryRunner.manager.save(event);
+                await queryRunner.commitTransaction();
+
                 return {
                     status: {
                         isBooked: true,
@@ -45,6 +60,7 @@ export class EventService {
             }
 
             await this.waitingListService.addToWaitingList(bookEventDto);
+            await queryRunner.commitTransaction();
             return {
                 status: {
                     isBooked: false,
@@ -53,8 +69,12 @@ export class EventService {
                 data: event,
             };
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             console.error("Event Booking error:", error);
             throw error;
+        } finally {
+            await RedisSource.del(lockKey);
+            await queryRunner.release();
         }
     }
 }
