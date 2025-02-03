@@ -6,8 +6,8 @@ export class Booking {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
-    event_id!: number;
+    @Column({name: "event_id"})
+    eventid!: number;
 
     @Column()
     email!: string;

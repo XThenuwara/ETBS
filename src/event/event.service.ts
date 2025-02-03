@@ -5,6 +5,8 @@ import { CreateEventDto } from "@/event/dto/create-event.dto";
 import { BookEventRequestDto, BookEventResponseDto } from "./dto/book-event.dto";
 import { WaitingListService } from "@/waiting-list/waiting-list.service";
 import { RedisSource } from "@/config/redis.config";
+import { CancelBookingRequestDto } from "@/event/dto/cancel-event.dto";
+import { Booking } from "@/event/entity/booking.entity";
 
 export class EventService {
     private eventRepository: Repository<Event>;
@@ -48,6 +50,14 @@ export class EventService {
             if (event.availableTickets > 0 && event.availableTickets >= bookEventDto.ticketCount) {
                 event.availableTickets -= bookEventDto.ticketCount;
                 await queryRunner.manager.save(event);
+                
+                const booking = new Booking();
+                booking.eventid = bookEventDto.eventId;
+                booking.email = bookEventDto.email;
+                booking.ticketCount = bookEventDto.ticketCount;
+                booking.totalPrice = bookEventDto.ticketCount * event.price;
+
+                await queryRunner.manager.save(booking);
                 await queryRunner.commitTransaction();
 
                 return {
@@ -78,7 +88,55 @@ export class EventService {
         }
     }
 
-    async cancelBooking(cancelEventDto: BookEventRequestDto) {
+    async cancelBooking(cancelEventDto: CancelBookingRequestDto): Promise<void> {
+        const lockKey = `event:${cancelEventDto.bookingId}:lock`;
+        const queryRunner = this.eventRepository.manager.connection.createQueryRunner();
+        await queryRunner.startTransaction();
+    
+        try {
+            const lockAcquired = await RedisSource.set(lockKey, 'locked', 'EX', 10, 'NX');
+            if (!lockAcquired) {
+                throw new Error("Event is currently being modified by another user");
+            }
+    
+            const booking = await queryRunner.manager.findOne(Booking, {
+                where: { id: cancelEventDto.bookingId },
+                relations: ['event'],
+            });
 
+            if (!booking) {
+                throw new Error("Booking not found");
+            }
+
+            const event = booking.event;
+            event.availableTickets += booking.ticketCount;
+
+            await queryRunner.manager.remove(booking);
+            await queryRunner.manager.save(event);
+
+            const waitingListEntry = await this.waitingListService.getFirstWaitingListEntry(event.id);
+            if (waitingListEntry) {
+                event.availableTickets -= waitingListEntry.ticketCount;
+
+                const booking = new Booking();
+                booking.eventid = event.id;
+                booking.email = waitingListEntry.email;
+                booking.ticketCount = waitingListEntry.ticketCount;
+                booking.totalPrice = waitingListEntry.ticketCount * event.price;
+
+                await queryRunner.manager.save(event);
+                await queryRunner.manager.remove(waitingListEntry);
+                await queryRunner.manager.save(booking);
+            }
+
+            await queryRunner.commitTransaction();    
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            console.error("Booking Cancellation error:", error);
+            throw error;
+        } finally {
+            await RedisSource.del(lockKey);
+            await queryRunner.release();
+        }
     }
 }
