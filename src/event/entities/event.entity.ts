@@ -14,28 +14,28 @@ export class Event {
     description!: string;
 
     @Column()
-    start_date!: Date;
+    startDate!: Date;
 
     @Column()
-    end_date!: Date;
+    endDate!: Date;
 
     @Column()
     location!: string;
 
     @Column()
-    total_tickets!: number;
+    totalTickets!: number;
 
     @Column()
-    available_tickets!: number;
+    availableTickets!: number;
 
     @Column("decimal")
     price!: number;
 
     @CreateDateColumn()
-    created_a!: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updated_at!: Date;
+    updatedAt!: Date;
 
     @OneToMany(() => Booking, booking => booking.event)
     bookings!: Booking[];
