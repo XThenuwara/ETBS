@@ -15,7 +15,8 @@
 ### ETBS-04-000 - Ticket Booking  
 - [done] ETBS-04-001 - Write unit tests for ticket booking logic (TDD)  ]
 - [done] ETBS-04-002 - Implement ticket booking endpoint  
-- ETBS-04-003 - Handle concurrent ticket bookings and prevent overselling  
+- [done] ETBS-04-003 - Handle concurrent ticket bookings and prevent overselling  
+- ETBS-04-004 - Modify Test cases for concurrent ticket bookings and prevent overselling
 
 ### ETBS-05-000 - Waiting List Management  
 - ETBS-05-001 - Write unit tests for waiting list management (TDD)  
