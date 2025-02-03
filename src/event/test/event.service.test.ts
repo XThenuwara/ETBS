@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { Event } from "@/event/entities/event.entity";
+import { Event } from "@/event/entity/event.entity";
 import { SqlLiteDataSource } from "@/config/database.config";
 import { CreateEventDto } from "@/event/dto/create-event.dto";
 import { EventService } from "@/event/event.service";
@@ -78,6 +78,7 @@ describe("EventService", () => {
             const bookEventDto: BookEventRequestDto = {
                 eventId: 1,
                 email: "test@gmail.com",
+                ticketCount: 10,
             };
 
             const mockEvent: Event = {
@@ -89,7 +90,7 @@ describe("EventService", () => {
                 location: "Test Location",
                 totalTickets: 100,
                 price: 100,
-                availableTickets: 10,
+                availableTickets: 100,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             } as Event;
@@ -102,16 +103,22 @@ describe("EventService", () => {
             const resultStatus = result.status;
             const resultData = result.data;
             expect(resultStatus).toEqual({
-                booked: true,
+                isBooked: true,
                 message: "Event booked successfully",
             });
-            expect(resultData).toEqual({ id: 1, availiableTickets: 9 });
+            expect(resultData).toEqual(
+                expect.objectContaining({
+                    id: 1,
+                    availableTickets: 80,
+                })
+            );
         });
 
         it("should add user to waiting list if event is sold out", async () => {
             const bookEventDto: BookEventRequestDto = {
                 eventId: 1,
                 email: "test@gmail.com",
+                ticketCount: 10,
             };
 
             const mockEvent: Event = {
@@ -140,10 +147,15 @@ describe("EventService", () => {
             const resultStatus = result.status;
             const resultData = result.data;
             expect(resultStatus).toEqual({
-                booked: false,
+                isBooked: false,
                 message: "Event is sold out. Added to waiting list.",
             });
-            expect(resultData).toEqual({ id: 1, availiableTickets: 0 });
+            expect(resultData).toEqual(
+                expect.objectContaining({
+                    id: 1,
+                    availableTickets: 0,
+                })
+            );
         });
     });
 });

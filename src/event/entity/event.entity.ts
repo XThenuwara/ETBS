@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
-import { Booking } from "./booking.entity";
-import { WaitingList } from "./waitingList.entity";
+import { Booking } from "@/event/entity/booking.entity";
+import { WaitingList } from "@/waiting-list/entity/waitingList.entity";
 
 @Entity("event")
 export class Event {
@@ -13,28 +13,28 @@ export class Event {
     @Column()
     description!: string;
 
-    @Column()
+    @Column({ name: 'start_date'})
     startDate!: Date;
 
-    @Column()
+    @Column({ name: 'end_date'})
     endDate!: Date;
 
     @Column()
     location!: string;
 
-    @Column()
+    @Column({ name: 'total_tickets'})
     totalTickets!: number;
 
-    @Column()
+    @Column({ name: 'available_tickets'})
     availableTickets!: number;
 
     @Column("decimal")
     price!: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ name: 'created_at'})
     createdAt!: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ name: 'updated_at'})
     updatedAt!: Date;
 
     @OneToMany(() => Booking, booking => booking.event)
