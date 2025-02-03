@@ -1,8 +1,9 @@
 import { Repository } from "typeorm";
-import { Event } from "../entities/event.entity";
-import { SqlLiteDataSource } from "@/config/database.config"; 
-import { CreateEventDto } from "../dto/create-event.dto";
-import { EventService } from "../event.service";
+import { Event } from "@/event/entities/event.entity";
+import { SqlLiteDataSource } from "@/config/database.config";
+import { CreateEventDto } from "@/event/dto/create-event.dto";
+import { EventService } from "@/event/event.service";
+import { BookEventRequestDto } from "@/event/dto/book-event.dto";
 
 describe("EventService", () => {
     let service: EventService;
@@ -21,6 +22,7 @@ describe("EventService", () => {
 
     beforeEach(() => {
         mockEventRepository = {
+            findOne: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
         } as unknown as jest.Mocked<Repository<Event>>;
@@ -29,18 +31,8 @@ describe("EventService", () => {
         service = new EventService();
     });
 
+    // Event Initialization
     it("should initialize and save the event successfully", async () => {
-        const createEventDto: CreateEventDto = {
-            name: "Test Event",
-            description: "Test Description",
-            startDate: new Date(),
-            endDate: new Date(),
-            location: "Test Location",
-            totalTickets: 100,
-            availableTickets: 100,
-            price: 100,
-        };
-
         const mockEvent = { id: 1, ...createEventDto } as Event;
         mockEventRepository.create.mockReturnValue(mockEvent);
         mockEventRepository.save.mockResolvedValue(mockEvent);
@@ -78,5 +70,80 @@ describe("EventService", () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith("Event Initialization error:", new Error(errorMessage));
 
         consoleErrorSpy.mockRestore();
+    });
+
+    // Event Booking
+    describe("bookEvent", () => {
+        it("should book the event successfully if tickets are available", async () => {
+            const bookEventDto: BookEventRequestDto = {
+                eventId: 1,
+                email: "test@gmail.com",
+            };
+
+            const mockEvent: Event = {
+                id: bookEventDto.eventId,
+                name: "Test Event",
+                description: "Test Description",
+                startDate: new Date(),
+                endDate: new Date(),
+                location: "Test Location",
+                totalTickets: 100,
+                price: 100,
+                availableTickets: 10,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } as Event;
+
+            mockEventRepository.findOne.mockResolvedValue(mockEvent);
+            mockEventRepository.save.mockResolvedValue(mockEvent);
+
+            await expect(service.bookEvent(bookEventDto)).resolves.not.toThrow();
+            const result = await service.bookEvent(bookEventDto);
+            const resultStatus = result.status;
+            const resultData = result.data;
+            expect(resultStatus).toEqual({
+                booked: true,
+                message: "Event booked successfully",
+            });
+            expect(resultData).toEqual({ id: 1, availiableTickets: 9 });
+        });
+
+        it("should add user to waiting list if event is sold out", async () => {
+            const bookEventDto: BookEventRequestDto = {
+                eventId: 1,
+                email: "test@gmail.com",
+            };
+
+            const mockEvent: Event = {
+                id: bookEventDto.eventId,
+                name: "Test Event",
+                description: "Test Description",
+                startDate: new Date(),
+                endDate: new Date(),
+                location: "Test Location",
+                totalTickets: 100,
+                price: 100,
+                availableTickets: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } as Event;
+
+            mockEventRepository.findOne.mockResolvedValue(mockEvent);
+            mockEventRepository.save.mockResolvedValue({
+                ...mockEvent,
+                waitingList: [],
+            });
+
+            await expect(service.bookEvent(bookEventDto)).resolves.not.toThrow();
+
+            const result = await service.bookEvent(bookEventDto);
+            const resultStatus = result.status;
+            const resultData = result.data;
+            expect(resultStatus).toEqual({
+                booked: false,
+                message: "Event is sold out. Added to waiting list.",
+            });
+            expect(resultData).toEqual({ id: 1, availiableTickets: 0 });
+        });
     });
 });
