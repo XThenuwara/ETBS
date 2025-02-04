@@ -58,7 +58,7 @@ const getEventStatus = async (req: Request, res: Response<ResponseType>) => {
 
 eventRouter.post("/events", initializeEvent);
 eventRouter.post("/events/booking", bookEvent);
-eventRouter.delete("/events/booking", cancelBooking);
+eventRouter.post("/events/cancel", cancelBooking);
 eventRouter.get('/events/:id', getEventStatus)
 
 export default eventRouter;
