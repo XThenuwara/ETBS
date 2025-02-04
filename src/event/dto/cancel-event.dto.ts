@@ -1,5 +1,7 @@
-import { Event } from "@/event/entity/event.entity";
+import { IsNotEmpty, IsNumber } from "class-validator";
 
 export class CancelBookingRequestDto {
-  bookingId!: number;
+    @IsNumber()
+    @IsNotEmpty()
+    bookingId!: number;
 }

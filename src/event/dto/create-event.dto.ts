@@ -1,17 +1,33 @@
+import { IsString, IsNumber, IsDate, Min } from "class-validator";
+import { Type } from "class-transformer";
+
 export class CreateEventDto {
-  name!: string;
+    @IsString()
+    name!: string;
 
-  description!: string;
+    @IsString()
+    description!: string;
 
-  startDate!: Date;
+    @Type(() => Date)
+    @IsDate()
+    startDate!: Date;
 
-  endDate!: Date;
+    @Type(() => Date)
+    @IsDate()
+    endDate!: Date;
 
-  location!: string;
+    @IsString()
+    location!: string;
 
-  totalTickets!: number;
+    @IsNumber()
+    @Min(0)
+    totalTickets!: number;
 
-  availableTickets!: number;
+    @IsNumber()
+    @Min(0)
+    availableTickets!: number;
 
-  price!: number;
+    @IsNumber()
+    @Min(0)
+    price!: number;
 }

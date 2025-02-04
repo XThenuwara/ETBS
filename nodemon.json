@@ -1,0 +1,6 @@
+{
+    "watch": ["src"],
+    "ext": ".ts,.js",
+    "ignore": [],
+    "exec": "rimraf ./dist && tsc && cd ./dist && node -r dotenv/config ./src/index.js"
+}

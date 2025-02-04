@@ -57,8 +57,8 @@ DELETE /api/events/cancel     - Cancel a ticket
 - [done] ETBS-06-002 - Create endpoints to view available tickets and waiting list 
 
 ### ETBS-07-000 - Security & Error Handling  
-- ETBS-07-001 - Implement proper error handling and edge case management  
-- ETBS-07-002 - Apply API input validation and request sanitization  
+- ETBS-07-001 - Implement proper error handling and edge case management
+- ETBS-07-002 - Apply API input validation and request sanitization + nodemon configuration
 
 ### ETBS-08-000 - Design a Simple Frontend
 - ETBS-08-001 - Design a simple frontend for the ticket booking system
