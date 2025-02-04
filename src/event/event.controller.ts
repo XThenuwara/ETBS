@@ -1,10 +1,11 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, RequestHandler } from "express";
 import { EventService } from "@/event/event.service";
 import { sendResponse } from "@/lib/common";
 import { CreateEventDto } from "@/event/dto/create-event.dto";
 import { BookEventRequestDto } from "@/event/dto/book-event.dto";
 import { ResponseType } from "@/lib/types/response.type";
 import { CancelBookingRequestDto } from "@/event/dto/cancel-event.dto";
+import { classValidator } from "../lib/class-validation.middleware";
 
 const eventService = new EventService();
 const eventRouter = Router();
@@ -56,9 +57,9 @@ const getEventStatus = async (req: Request, res: Response<ResponseType>) => {
     }
 };
 
-eventRouter.post("/events", initializeEvent);
-eventRouter.post("/events/booking", bookEvent);
-eventRouter.post("/events/cancel", cancelBooking);
+eventRouter.post("/events", classValidator(CreateEventDto) as RequestHandler, initializeEvent);
+eventRouter.post("/events/booking", classValidator(BookEventRequestDto) as RequestHandler, bookEvent);
+eventRouter.post("/events/cancel", classValidator(CancelBookingRequestDto) as RequestHandler, cancelBooking);
 eventRouter.get('/events/:id', getEventStatus)
 
 export default eventRouter;
