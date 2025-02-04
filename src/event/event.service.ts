@@ -139,4 +139,9 @@ export class EventService {
             await queryRunner.release();
         }
     }
+
+    async getStatus(eventId: number): Promise<Event> {
+        // Implement the logic
+        return {} as any;
+    }
 }
