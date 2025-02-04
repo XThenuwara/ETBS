@@ -345,40 +345,45 @@ describe("EventService", () => {
     });
 
     // Event Status
-    describe('getStatus', () => {
-        it('should return the event status if found', async () => {
-          const eventId = 1;
-          const mockEvent: Event = {
-            id: eventId,
-            name: 'Test Event',
-            description: 'Test Description',
-            startDate: new Date(),
-            endDate: new Date(),
-            location: "Test Location",
-            totalTickets: 100,
-            availableTickets: 100,
-            price: 100,
-            waitingList: [],
-            bookings: [],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          } as Event;
-    
-          mockEventRepository.findOne.mockResolvedValue(mockEvent);
-          const eventStatus = await service.getStatus(eventId);
-    
-          expect(mockEventRepository.findOne).toHaveBeenCalledWith({ where: { id: eventId } });
-          expect(eventStatus).toEqual(mockEvent);
+    describe("getStatus", () => {
+        it("should return the event status if found", async () => {
+            const eventId = 1;
+            const mockEvent: Event = {
+                id: eventId,
+                name: "Test Event",
+                description: "Test Description",
+                startDate: new Date(),
+                endDate: new Date(),
+                location: "Test Location",
+                totalTickets: 100,
+                availableTickets: 100,
+                price: 100,
+                waitingList: [],
+                bookings: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } as Event;
+
+            mockEventRepository.findOne.mockResolvedValue(mockEvent);
+            const eventStatus = await service.getStatus(eventId);
+
+            expect(mockEventRepository.findOne).toHaveBeenCalledWith({
+                where: { id: eventId },
+                relations: ["bookings", "waitingList"],
+            });
+            expect(eventStatus).toEqual(mockEvent);
         });
-    
-        it('should throw a error if event is not found', async () => {
-          const eventId = 1;
-          mockEventRepository.findOne.mockResolvedValue(null);
-    
-          const eventStatus = await service.getStatus(eventId);
-    
-          expect(mockEventRepository.findOne).toHaveBeenCalledWith({ where: { id: eventId } });
-          expect(eventStatus).toBeUndefined(); 
+
+        it("should throw a error if event is not found", async () => {
+            const eventId = 1;
+            mockEventRepository.findOne.mockResolvedValue(null);
+
+            await expect(service.getStatus(eventId)).rejects.toThrow("Event not found");
+
+            expect(mockEventRepository.findOne).toHaveBeenCalledWith({
+                where: { id: eventId },
+                relations: ["bookings", "waitingList"],
+            });
         });
-    });    
+    });
 });

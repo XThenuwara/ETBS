@@ -24,7 +24,7 @@
 
 ### ETBS-06-000 - Viewing Information  
 - [done] ETBS-06-001 - Write unit tests for viewing available tickets and waiting list (TDD)  
-- ETBS-06-002 - Create endpoints to view available tickets and waiting list  
+- [done] ETBS-06-002 - Create endpoints to view available tickets and waiting list  
 
 ### ETBS-07-000 - Security & Error Handling  
 - ETBS-07-001 - Implement proper error handling and edge case management  

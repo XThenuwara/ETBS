@@ -45,8 +45,20 @@ const cancelBooking = async (req: Request, res: Response<ResponseType>) => {
     }
 };
 
+const getEventStatus = async (req: Request, res: Response<ResponseType>) => {
+    try {
+        const eventId = parseInt(req.params.id, 10);
+        const status = await eventService.getStatus(eventId);
+        sendResponse(res, 200, "OK", status);
+    } catch (error) {
+        console.error("Error in getEventStatus:", error);
+        sendResponse(res, 500, "Internal Server Error", null, error);
+    }
+};
+
 eventRouter.post("/events", initializeEvent);
 eventRouter.post("/events/booking", bookEvent);
 eventRouter.delete("/events/booking", cancelBooking);
+eventRouter.get('/events/:id', getEventStatus)
 
 export default eventRouter;

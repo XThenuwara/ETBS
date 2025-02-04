@@ -141,7 +141,20 @@ export class EventService {
     }
 
     async getStatus(eventId: number): Promise<Event> {
-        // Implement the logic
-        return {} as any;
+        try {
+            const event = await this.eventRepository.findOne({
+                where: { id: eventId },
+                relations: ['bookings', 'waitingList']
+            });
+
+            if (!event) {
+                throw new Error("Event not found");
+            }
+
+            return event;
+        } catch (error) {
+            console.error("Get Event Status error:", error);
+            throw error;
+        }
     }
 }
