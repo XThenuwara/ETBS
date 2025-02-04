@@ -23,7 +23,7 @@
 - [done] ETBS-05-002 - Implement ticket cancellation and automatic reassignment  
 
 ### ETBS-06-000 - Viewing Information  
-- ETBS-06-001 - Write unit tests for viewing available tickets and waiting list (TDD)  
+- [done] ETBS-06-001 - Write unit tests for viewing available tickets and waiting list (TDD)  
 - ETBS-06-002 - Create endpoints to view available tickets and waiting list  
 
 ### ETBS-07-000 - Security & Error Handling  
