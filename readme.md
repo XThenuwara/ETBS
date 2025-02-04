@@ -1,3 +1,33 @@
+## Project Setup
+
+#### Pre-requisites
+- Node.js v22.0.0 or higher
+- Redis on localhost:6379
+
+#### Installation
+```
+npm install
+```
+
+#### Running the project
+```
+npm run dev
+```
+
+#### Running tests
+```
+npm run test
+```
+
+#### API Endpoints
+```
+GET /api/events/:eventId    - Get event details
+POST /api/events/           - Create a new event
+POST /api/events/book       - Book a ticket
+DELETE /api/events/cancel     - Cancel a ticket
+```
+
+
 ## Project Roadmap: Event Ticket Booking System
 
 ### ETBS-01-000 - Environment Setup  
@@ -24,7 +54,7 @@
 
 ### ETBS-06-000 - Viewing Information  
 - [done] ETBS-06-001 - Write unit tests for viewing available tickets and waiting list (TDD)  
-- [done] ETBS-06-002 - Create endpoints to view available tickets and waiting list  
+- [done] ETBS-06-002 - Create endpoints to view available tickets and waiting list 
 
 ### ETBS-07-000 - Security & Error Handling  
 - ETBS-07-001 - Implement proper error handling and edge case management  
